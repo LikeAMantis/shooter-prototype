@@ -9,7 +9,7 @@ namespace Weapon
 {
     public enum WeaponMode { Single, Automatic, Burst, }
 
-    [RequireComponent(typeof(IReload))]
+    [RequireComponent(typeof(Reloadable))]
     public class WeaponShoot : MonoBehaviour
     {
         #region Fields / Propertys
@@ -49,7 +49,7 @@ namespace Weapon
             float currentRecoil = 0f;
             bool isRecoilResetRoutineRunning;
             Transform transform1;
-            IReload reload;
+            Reloadable reload;
 
             public event Action OnShot;
         
@@ -64,7 +64,7 @@ namespace Weapon
                 transform1 = transform;
                 MagazinAmmo = MagazinSize;
                 MagazinUI = FindObjectOfType<MagazinUI>();
-                reload = GetComponent<IReload>();
+                reload = GetComponent<Reloadable>();
             }
 
             void Start()

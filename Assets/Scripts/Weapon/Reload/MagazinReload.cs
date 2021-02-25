@@ -3,17 +3,14 @@ using UnityEngine;
 
 namespace Weapon.Reload
 {
-    public class MagazinReload : MonoBehaviour, IReload
+    public class MagazinReload : Reloadable
     {
-        public float reloadSpeed = 1f;
-        public void Reload(WeaponShoot context)
-        {
-            StartCoroutine(ReloadWait(context));
-        }
+        public float reloadSpeed = 2f;
 
-        IEnumerator ReloadWait(WeaponShoot context)
+        protected override IEnumerator ReloadWait(WeaponShoot context)
         {
             yield return new WaitForSeconds(reloadSpeed);
+            if (!isReloading) yield break;
             context.MagazinAmmo = context.MagazinSize;
             context.MagazinUI.UpdateUI(context.MagazinSize, context.MagazinAmmo);
         }

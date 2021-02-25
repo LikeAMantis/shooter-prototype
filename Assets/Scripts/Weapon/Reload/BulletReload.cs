@@ -1,53 +1,20 @@
-﻿using System;
-using System.Collections;
-using UI;
+﻿using System.Collections;
 using UnityEngine;
 
 namespace Weapon.Reload
 {
-    public class BulletReload : MonoBehaviour, IReload
+    public class BulletReload : Reloadable
     {
-        bool isReloadWaitRunning = false;
-        
         public float reloadSpeedPerBullet = 0.5f;
-        bool reload = false; WeaponShoot weaponShoot;
 
-        void Awake()
+        protected override IEnumerator ReloadWait(WeaponShoot context)
         {
-            weaponShoot = GetComponent<WeaponShoot>();
-        }
-
-        void OnEnable()
-        {
-            weaponShoot.OnShot += StopReload;
-        }
-
-        void OnDisable()
-        {
-            weaponShoot.OnShot -= StopReload;
-        }
-
-        public void Reload(WeaponShoot context)
-        {
-            reload = !reload;
-            if (!isReloadWaitRunning) StartCoroutine(ReloadWait(context));
-        }
-
-        IEnumerator ReloadWait(WeaponShoot context)
-        {
-            isReloadWaitRunning = true;
-            while (context.MagazinAmmo < context.MagazinSize && reload)
+            while (context.MagazinAmmo < context.MagazinSize && base.isReloading)
             {
                 context.MagazinAmmo++;
                 context.MagazinUI.UpdateUI(context.MagazinAmmo, context.MagazinSize);
                 yield return new WaitForSeconds(reloadSpeedPerBullet);    
             }
-            isReloadWaitRunning = false;
-        }
-
-        void StopReload()
-        {
-            reload = false;
         }
     }
 }
