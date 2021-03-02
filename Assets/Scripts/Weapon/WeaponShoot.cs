@@ -20,18 +20,21 @@ namespace Weapon
 
             [Header("Weapon Settings")]
             public float shootDistance = 100f;
+
             public float shootForce = 100f;
-            public float spray = 5f;
+            public float sprayAngle = 5f;
 
             [Header("Magazin")] 
             [SerializeField] int magazinSize = 10;
-            
+
             [Header("Recoil")]
             public float recoil = 3f;
+
             public float recoilResetSpeed = 5f;
 
             [Header("Weapon Mode")]
             public WeaponMode weaponMode = WeaponMode.Single;
+
             [SerializeField] float fireRate = 10f;
             public bool burstToggleActive = false;
             [SerializeField] float burstRate = 5f;
@@ -43,16 +46,16 @@ namespace Weapon
 
             float FireRateInterval => 60 / fireRate;
             float BurstRateInterval => 60 / burstRate;
-            
+
             AudioSource audioSource;
             bool allowedToShoot = true;
             float currentRecoil = 0f;
             bool isRecoilResetRoutineRunning;
-            Transform transform1;
+            Transform cameraTransform;
             Reloadable reload;
 
-            public event Action OnShot;
-        
+            public event Action ShotEvent;
+
         #endregion
 
         #region Events
@@ -61,7 +64,7 @@ namespace Weapon
             {
                 playerCamera = playerCamera ? playerCamera : Camera.main;
                 if (playerCamera != null) audioSource = playerCamera.GetComponent<AudioSource>();
-                transform1 = transform;
+                cameraTransform = transform;
                 MagazinAmmo = MagazinSize;
                 MagazinUI = FindObjectOfType<MagazinUI>();
                 reload = GetComponent<Reloadable>();
@@ -69,6 +72,7 @@ namespace Weapon
 
             void Start()
             {
+                Debug.unityLogger.logEnabled = false;
                 MagazinUI.UpdateUI(MagazinAmmo, MagazinSize);
             }
 
@@ -86,11 +90,11 @@ namespace Weapon
                     reload.Reload(this);
                 }
             }
-        
+
         #endregion
-        
+
         #region Methods
-        
+
             void UseWeaponMode(WeaponMode mode)
             {
                 switch(mode) 
@@ -137,20 +141,31 @@ namespace Weapon
 
             void Shot()
             {
-                OnShot?.Invoke();
+                if (!UpdateMagazin()) return;
                 
-                if (UpdateMagazin()) return;
+                ShotEvent?.Invoke();
 
-                Physics.Raycast(transform1.position, transform1.forward, out var hit, shootDistance);
-                audioSource.PlayOneShot(weaponSound);
+                var ray = new Ray {origin = cameraTransform.position, direction = AddSpray(cameraTransform)};
+
+                Physics.Raycast(ray, out var hit, shootDistance);
+                Debug.DrawRay(ray.origin, ray.direction * hit.distance, Color.blue, 2);
+                Debug.DrawRay(ray.origin, cameraTransform.forward * hit.distance, Color.green, 2);
                 
+
+                BulletImpact(hit);
+
+                audioSource.PlayOneShot(weaponSound);
+
                 var playerCameraTransform = playerCamera.transform;
                 Recoil(playerCameraTransform);
                 RecoilReset(playerCameraTransform);
+            }
 
+            void BulletImpact(RaycastHit hit)
+            {
                 var hitCollider = hit.collider;
-
-                if (hitCollider != null && hitCollider.CompareTag("Interactable")) {
+                if (hitCollider != null && hitCollider.CompareTag("Interactable"))
+                {
                     var point = hit.point;
 
                     var forward = transform.forward;
@@ -159,17 +174,23 @@ namespace Weapon
                     var forceFallOff = Mathf.Pow(1 - 1 / shootDistance, hit.distance);
                     hitCollider.attachedRigidbody.AddForceAtPosition(forward * (shootForce * forceFallOff), point);
 
-                    // Debug.Log("<color=blue>Distance: </color>" + hit.distance);
-                    // Debug.Log("<color=yellow>Impact: </color>" + forceFallOff);
+                    Debug.Log("<color=blue>Distance: </color>" + hit.distance);
+                    Debug.Log("<color=yellow>Impact: </color>" + forceFallOff);
                 }
             }
 
-            bool UpdateMagazin()
+            Vector3 AddSpray(Transform t)
             {
-                if (MagazinAmmo < 1) return true;
+                var spray = Quaternion.Euler(0,0, Random.Range(0f, 360f)) * (Quaternion.Euler(Random.Range(0, sprayAngle), 0, 0) * Vector3.forward);
+                return t.TransformDirection(spray);
+            }
+
+            private bool UpdateMagazin()
+            {
+                if (MagazinAmmo < 1) return false;
                 MagazinAmmo -= 1;
                 MagazinUI.UpdateUI(MagazinAmmo, MagazinSize);
-                return false;
+                return true;
             }
 
             void Recoil(Transform t) {
@@ -180,7 +201,6 @@ namespace Weapon
                 } else {
                     currentRecoil = recoil;
                 }
-                
             }
 
             void RecoilReset(Transform t) {
@@ -198,8 +218,8 @@ namespace Weapon
                         isRecoilResetRoutineRunning = false;
                         yield break;
                     }
-                    var recoilDelta = recoil * Time.deltaTime * (1 / recoilResetSpeed);
 
+                    var recoilDelta = recoil * Time.deltaTime * (1 / recoilResetSpeed);
                     t.eulerAngles += new Vector3(recoilDelta, 0, 0);
                     currentRecoil -= recoilDelta;
                     yield return waitForEndOfFrame;
@@ -240,7 +260,7 @@ namespace Weapon
                         break;
                 }
             }
-          
+
         #endregion
     }
 }

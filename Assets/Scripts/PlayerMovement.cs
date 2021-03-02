@@ -10,21 +10,49 @@ public class PlayerMovement : MonoBehaviour
     public float boostMultiplier = 2;
     public float mouseSensitivity = 200;
     public bool invertYAxis = false;
+    public float jumpVelocity;
+    public float gravityScale = 1f;
+    
     
     Transform cameraTransform;
     Animator cameraAnimator;
     static readonly int IsWalking = Animator.StringToHash("isWalking");
+    Rigidbody rb;
+    bool isGrounded = false;
+    Gravity gravity;
 
     void Awake()
     {
         cameraTransform = playerCamera.transform;
         cameraAnimator = playerCamera.GetComponent<Animator>();
+        rb = GetComponent<Rigidbody>();
+        gravity = new Gravity(rb, gravityScale);
     }
 
+    void FixedUpdate()
+    {
+        gravity.UseGravity();
+    }
+    
     void Update() 
     {
         LookAround();
         Movement();
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            Debug.Log("Space pressed");
+            Jump();
+        }
+    }
+
+    void OnCollisionEnter(Collision other)
+    {
+        isGrounded = true;
+    }
+
+    void OnCollisionExit(Collision other)
+    {
+        isGrounded = false;
     }
 
     void LookAround() 
@@ -69,6 +97,15 @@ public class PlayerMovement : MonoBehaviour
         if (Input.GetKeyUp("w") || Input.GetKeyUp("a") || Input.GetKeyUp("s") || Input.GetKeyUp("d"))
         {
             cameraAnimator.SetBool(IsWalking, false);
+        }
+    }
+
+    void Jump()
+    {
+        Debug.Log("Jump: isGrounded " + isGrounded, this);
+        if (isGrounded)
+        {
+            rb.velocity = Vector3.up * jumpVelocity;
         }
     }
 }

@@ -15,12 +15,17 @@ namespace Weapon.Reload
 
         void OnEnable()
         {
-            weaponShoot.OnShot += StopReload;
+            weaponShoot.ShotEvent += OnShot;
         }
 
         void OnDisable()
         {
-            weaponShoot.OnShot -= StopReload;
+            weaponShoot.ShotEvent -= OnShot;
+        }
+
+        void OnShot()
+        {
+            StopReload();
         }
 
         public void Reload(WeaponShoot context)
@@ -28,7 +33,7 @@ namespace Weapon.Reload
             isReloading = !isReloading;
             StartCoroutine(ReloadWait(context));
         }
-        
+
         protected abstract IEnumerator ReloadWait(WeaponShoot context);
 
         void StopReload()
