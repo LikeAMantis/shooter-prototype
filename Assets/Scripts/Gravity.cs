@@ -4,26 +4,23 @@ using UnityEngine;
 
 public class Gravity
 {
-    public float gravityScale;
-    const float GravityConstant = 9.81f;
+    static readonly Vector3 GravityVector = new Vector3(0, -9.83f, 0);
     readonly Rigidbody rb;
 
-    public Gravity(Rigidbody rb, float gravityScale)
+    public Gravity(Rigidbody rb)
     {
         this.rb = rb;
-        this.gravityScale = gravityScale;
-        
         rb.useGravity = false;
     }
 
     public static void UseGravity(Rigidbody rb, float gravityScale)
     {
-        rb.AddForce(Vector3.down * (GravityConstant * gravityScale), ForceMode.Acceleration);
+        rb.AddForce(GravityVector * gravityScale, ForceMode.Acceleration);
     }
     
-    public void UseGravity()
+    public void UseGravity(float gravityScale)
     {
-        rb.AddForce(Vector3.down * (GravityConstant * gravityScale), ForceMode.Acceleration);
-        // rb.velocity += Vector3.down * (GravityConstant * gravityScale);
+        // rb.AddForce(GravityVector * gravityScale, ForceMode.Acceleration);
+        rb.velocity += GravityVector * (gravityScale * Time.deltaTime);
     }
 }

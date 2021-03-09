@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    void Awake() {
+    void Start() {
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
     }

@@ -17,6 +17,7 @@ namespace Weapon
             public AudioClip weaponSound;
             public Camera playerCamera;
             public GameObject bulletHole;
+            public static float test = 2f; 
 
             [Header("Weapon Settings")]
             public float shootDistance = 100f;
@@ -53,6 +54,8 @@ namespace Weapon
             bool isRecoilResetRoutineRunning;
             Transform cameraTransform;
             Reloadable reload;
+            Animator animator;
+            ParticleSystem particle;
 
             public event Action ShotEvent;
 
@@ -68,11 +71,12 @@ namespace Weapon
                 MagazinAmmo = MagazinSize;
                 MagazinUI = FindObjectOfType<MagazinUI>();
                 reload = GetComponent<Reloadable>();
+                animator = GetComponentInChildren<Animator>();
+                particle = GetComponentInChildren<ParticleSystem>();
             }
 
             void Start()
             {
-                Debug.unityLogger.logEnabled = false;
                 MagazinUI.UpdateUI(MagazinAmmo, MagazinSize);
             }
 
@@ -142,9 +146,12 @@ namespace Weapon
             void Shot()
             {
                 if (!UpdateMagazin()) return;
-                
-                ShotEvent?.Invoke();
 
+                ShotEvent?.Invoke();
+                particle.Play();
+                animator.Play("Shoot");
+                
+                
                 var ray = new Ray {origin = cameraTransform.position, direction = AddSpray(cameraTransform)};
 
                 Physics.Raycast(ray, out var hit, shootDistance);
@@ -164,7 +171,7 @@ namespace Weapon
             void BulletImpact(RaycastHit hit)
             {
                 var hitCollider = hit.collider;
-                if (hitCollider != null && hitCollider.CompareTag("Interactable"))
+                if (hitCollider != null)
                 {
                     var point = hit.point;
 
@@ -172,10 +179,11 @@ namespace Weapon
                     CreateBulletHole(point, forward, hit.transform);
 
                     var forceFallOff = Mathf.Pow(1 - 1 / shootDistance, hit.distance);
-                    hitCollider.attachedRigidbody.AddForceAtPosition(forward * (shootForce * forceFallOff), point);
+                    var attachedRigidbody = hitCollider.attachedRigidbody;
+                    if (attachedRigidbody != null && attachedRigidbody.tag.Equals("Interactable")) attachedRigidbody.AddForceAtPosition(forward * (shootForce * forceFallOff), point);
 
-                    Debug.Log("<color=blue>Distance: </color>" + hit.distance);
-                    Debug.Log("<color=yellow>Impact: </color>" + forceFallOff);
+                    // Debug.Log("<color=blue>Distance: </color>" + hit.distance);
+                    // Debug.Log("<color=yellow>Impact: </color>" + forceFallOff);
                 }
             }
 
