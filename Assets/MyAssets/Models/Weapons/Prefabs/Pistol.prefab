@@ -149,14 +149,13 @@ MonoBehaviour:
   playerCamera: {fileID: 0}
   bulletHole: {fileID: 9034558252935195744, guid: c3df0e284baca8648acaba99a9870724,
     type: 3}
-  shootDistance: 100
-  shootForce: 100
+  maxImpactForce: 60
   sprayAngle: 0.6
   magazinSize: 20
-  recoil: 3
+  recoil: 1
   recoilResetSpeed: 0.3
   weaponMode: 0
-  fireRate: 400
+  fireRate: 750
   burstToggleActive: 1
   burstRate: 1200
   shotsPerBurst: 3

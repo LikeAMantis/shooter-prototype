@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Movement.Crouch;
 using UnityEngine;
 using UnityEngine.Serialization;
 using Weapon;
@@ -21,26 +22,29 @@ namespace Movement
         public float jumpVelocity;
         public float gravityScale = 1f;
         
+        
         static readonly string[] MovementKeys = {"w", "a", "s", "d"};
         static readonly int IsWalking = Animator.StringToHash("isWalking");
-    
+
+        CharacterController characterController;
         Transform cameraTransform;
-        Rigidbody rb;
-        bool isGrounded = false;
-        Gravity gravity;
-        bool lookAroundActive = true;
-        float xRotation;
-        public Animator camAnimator;
         ICrouchable crouchable;
+        Rigidbody rb;
+        Gravity gravity;
+        bool isGrounded = false;
+        bool lookAroundActive = true;
         
+        public float XRotation { get; set; }
+
+
         void Awake()
         {
-            camAnimator = playerCamera.GetComponent<Animator>();
             cameraTransform = playerCamera.transform;
             rb = GetComponent<Rigidbody>();
             gravity = new Gravity(rb);
             weaponSelection = weaponSelection ? weaponSelection : GetComponentInChildren<WeaponSelection>();
             crouchable = GetComponent<ICrouchable>();
+            characterController = GetComponent<CharacterController>();
         }
 
         void FixedUpdate()
@@ -82,13 +86,10 @@ namespace Movement
             var verticalDelta = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime * (invertYAxis ? 1 : -1);
             var horizontalDelta = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
 
-            xRotation += verticalDelta;
-            xRotation = Mathf.Clamp(xRotation, -90f, 90f);
-            // var eulerAngles = cameraTransform.eulerAngles;
-            // eulerAngles.x += verticalDelta;
-            // eulerAngles.x = Mathf.Clamp(eulerAngles.x, -90f, 90f);
-        
-            cameraTransform.localRotation = Quaternion.Euler(xRotation, 0, 0f);
+            XRotation += verticalDelta;
+            XRotation = Mathf.Clamp(XRotation, -90f, 90f);
+            
+            cameraTransform.localRotation = Quaternion.Euler(XRotation, 0, 0f);
             transform.eulerAngles += new Vector3(0, horizontalDelta, 0);
         }
 
@@ -125,10 +126,5 @@ namespace Movement
                 rb.velocity = Vector3.up * jumpVelocity;
             }
         }
-    }
-
-    internal interface ICrouchable
-    {
-        void Crouch();
     }
 }

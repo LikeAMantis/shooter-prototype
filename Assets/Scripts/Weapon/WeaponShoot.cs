@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using Movement;
 using UnityEngine;
 using UI;
 using Random = UnityEngine.Random;
@@ -17,13 +18,10 @@ namespace Weapon
             public AudioClip weaponSound;
             public Camera playerCamera;
             public GameObject bulletHole;
-            public static float test = 2f; 
 
             [Header("Weapon Settings")]
-            public float shootDistance = 100f;
-
-            public float shootForce = 100f;
-            public float sprayAngle = 5f;
+            public float maxImpactForce = 60f;
+            public float sprayAngle = 1f;
 
             [Header("Magazin")] 
             [SerializeField] int magazinSize = 10;
@@ -48,14 +46,16 @@ namespace Weapon
             float FireRateInterval => 60 / fireRate;
             float BurstRateInterval => 60 / burstRate;
 
-            AudioSource audioSource;
             bool allowedToShoot = true;
             float currentRecoil = 0f;
             bool isRecoilResetRoutineRunning;
+            AudioSource audioSource;
             Transform cameraTransform;
             Reloadable reload;
             Animator animator;
             ParticleSystem particle;
+            PlayerMovement playerMovement;
+            
 
             public event Action ShotEvent;
 
@@ -73,6 +73,7 @@ namespace Weapon
                 reload = GetComponent<Reloadable>();
                 animator = GetComponentInChildren<Animator>();
                 particle = GetComponentInChildren<ParticleSystem>();
+                playerMovement = FindObjectOfType<PlayerMovement>();
             }
 
             void Start()
@@ -154,7 +155,7 @@ namespace Weapon
                 
                 var ray = new Ray {origin = cameraTransform.position, direction = AddSpray(cameraTransform)};
 
-                Physics.Raycast(ray, out var hit, shootDistance);
+                Physics.Raycast(ray, out var hit);
                 Debug.DrawRay(ray.origin, ray.direction * hit.distance, Color.blue, 2);
                 Debug.DrawRay(ray.origin, cameraTransform.forward * hit.distance, Color.green, 2);
                 
@@ -178,12 +179,12 @@ namespace Weapon
                     var forward = transform.forward;
                     CreateBulletHole(point, forward, hit.transform);
 
-                    var forceFallOff = Mathf.Pow(1 - 1 / shootDistance, hit.distance);
+                    var impact = Mathf.Lerp(maxImpactForce, maxImpactForce * .25f, (Mathf.InverseLerp(1, 50, hit.distance)));
                     var attachedRigidbody = hitCollider.attachedRigidbody;
-                    if (attachedRigidbody != null && attachedRigidbody.tag.Equals("Interactable")) attachedRigidbody.AddForceAtPosition(forward * (shootForce * forceFallOff), point);
-
-                    // Debug.Log("<color=blue>Distance: </color>" + hit.distance);
-                    // Debug.Log("<color=yellow>Impact: </color>" + forceFallOff);
+                    if (attachedRigidbody != null && attachedRigidbody.tag.Equals("Interactable")) attachedRigidbody.AddForceAtPosition(forward * impact, point);
+                    
+                    Debug.Log("<color=blue>Distance: </color>" + hit.distance);
+                    Debug.Log("<color=yellow>Impact: </color>" + impact);
                 }
             }
 
@@ -201,8 +202,9 @@ namespace Weapon
                 return true;
             }
 
-            void Recoil(Transform t) {
-                t.eulerAngles += new Vector3(-recoil, 0, 0);
+            void Recoil(Transform t)
+            {
+                playerMovement.XRotation -= recoil;
 
                 if (currentRecoil > recoil) {
                     currentRecoil += .5f;
@@ -219,8 +221,7 @@ namespace Weapon
 
             IEnumerator RecoilResetEnumerator(Transform t) {
                 isRecoilResetRoutineRunning = true;
-                var waitForEndOfFrame = new WaitForEndOfFrame();
-
+                
                 while (true) {
                     if (currentRecoil < 0) {
                         isRecoilResetRoutineRunning = false;
@@ -228,9 +229,9 @@ namespace Weapon
                     }
 
                     var recoilDelta = recoil * Time.deltaTime * (1 / recoilResetSpeed);
-                    t.eulerAngles += new Vector3(recoilDelta, 0, 0);
+                    playerMovement.XRotation += recoilDelta;
                     currentRecoil -= recoilDelta;
-                    yield return waitForEndOfFrame;
+                    yield return null;
                 }
             }
 

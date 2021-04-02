@@ -9,6 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5977704799239882685}
+  - component: {fileID: 595594936}
+  - component: {fileID: 595594937}
   m_Layer: 0
   m_Name: Smg
   m_TagString: Untagged
@@ -31,6 +33,45 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &595594936
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5977704799239882684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f94edce62920a1f45a6764d597e5c3fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  weaponSound: {fileID: 8300000, guid: 7b338218a0aa8a041bf21463b43076e9, type: 3}
+  playerCamera: {fileID: 0}
+  bulletHole: {fileID: 9034558252935195744, guid: c3df0e284baca8648acaba99a9870724,
+    type: 3}
+  maxImpactForce: 60
+  sprayAngle: 1
+  magazinSize: 25
+  recoil: 2
+  recoilResetSpeed: 0.3
+  weaponMode: 1
+  fireRate: 750
+  burstToggleActive: 0
+  burstRate: 800
+  shotsPerBurst: 3
+--- !u!114 &595594937
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5977704799239882684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f395efad89984abd81611c01dc7c477c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  reloadSpeed: 1.5
 --- !u!95 &5977704798461886527
 Animator:
   serializedVersion: 3
@@ -50,46 +91,6 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
---- !u!114 &5977704798461886520
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6788185804705556611}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f94edce62920a1f45a6764d597e5c3fb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  weaponSound: {fileID: 8300000, guid: 7b338218a0aa8a041bf21463b43076e9, type: 3}
-  playerCamera: {fileID: 0}
-  bulletHole: {fileID: 9034558252935195744, guid: c3df0e284baca8648acaba99a9870724,
-    type: 3}
-  shootDistance: 100
-  shootForce: 100
-  sprayAngle: 1
-  magazinSize: 25
-  recoil: 2
-  recoilResetSpeed: 0.3
-  weaponMode: 1
-  fireRate: 750
-  burstToggleActive: 0
-  burstRate: 800
-  shotsPerBurst: 3
---- !u!114 &5977704798461886521
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6788185804705556611}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f395efad89984abd81611c01dc7c477c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  reloadSpeed: 1.5
 --- !u!1001 &440304052834523332
 PrefabInstance:
   m_ObjectHideFlags: 0
