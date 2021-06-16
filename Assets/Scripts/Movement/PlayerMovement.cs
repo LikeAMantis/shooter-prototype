@@ -2,6 +2,7 @@
 using System.Linq;
 using Movement.Crouch;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 using UnityEngine.Serialization;
 using Weapon;
 
@@ -19,9 +20,9 @@ namespace Movement
         public bool invertYAxis = false;
     
         [Header("Jump")]
-        public float jumpVelocity;
+        public float jumpHeight = .7f;
         public float gravityScale = 1f;
-        
+        public LayerMask groundMask;
         
         static readonly string[] MovementKeys = {"w", "a", "s", "d"};
         static readonly int IsWalking = Animator.StringToHash("isWalking");
@@ -29,29 +30,28 @@ namespace Movement
         CharacterController characterController;
         Transform cameraTransform;
         ICrouchable crouchable;
-        Rigidbody rb;
-        Gravity gravity;
         bool isGrounded = false;
         bool lookAroundActive = true;
-        
+        Vector3 velocity;
+        float gravity = -9.81f;
+        float radiusSphereCheck = .2f;
+
         public float XRotation { get; set; }
 
+
+        void OnDrawGizmosSelected()
+        {
+            Gizmos.DrawWireSphere(transform.position, radiusSphereCheck);
+        }
 
         void Awake()
         {
             cameraTransform = playerCamera.transform;
-            rb = GetComponent<Rigidbody>();
-            gravity = new Gravity(rb);
             weaponSelection = weaponSelection ? weaponSelection : GetComponentInChildren<WeaponSelection>();
             crouchable = GetComponent<ICrouchable>();
             characterController = GetComponent<CharacterController>();
         }
 
-        void FixedUpdate()
-        {
-            gravity.UseGravity(gravityScale);
-        }
-    
         void Update() 
         {
             LookAround();
@@ -69,16 +69,11 @@ namespace Movement
             }
         }
 
-        void OnCollisionEnter(Collision other)
+        void FixedUpdate()
         {
-            isGrounded = true;
+            Gravity();
         }
-
-        void OnCollisionExit(Collision other)
-        {
-            isGrounded = false;
-        }
-    
+        
         void LookAround() 
         {
             if (!lookAroundActive) return;
@@ -96,12 +91,11 @@ namespace Movement
         void Movement() 
         {
             var sensitivity = movementSpeed * Time.deltaTime * (Input.GetKey(KeyCode.LeftShift) ? boostMultiplier : 1);
-            var forward = Input.GetAxis("Vertical") * sensitivity;
-            var side = Input.GetAxis("Horizontal") * sensitivity;
-            var up = sensitivity;
-        
-            transform.Translate(side, 0, forward, Space.Self);
-        
+            var z = transform.forward * Input.GetAxis("Vertical");
+            var x = transform.right * Input.GetAxis("Horizontal");
+            var movementVector = (z + x) * sensitivity;
+            
+            characterController.Move(movementVector);
             MovementAnimation();
         }
 
@@ -119,11 +113,23 @@ namespace Movement
             }
         }
 
+        void Gravity()
+        {
+            velocity.y += gravity * gravityScale * Time.deltaTime;
+            isGrounded = Physics.CheckSphere(transform.position, radiusSphereCheck, groundMask);
+            characterController.Move(velocity * Time.deltaTime);
+            
+            if (isGrounded && velocity.y < 0)
+            {
+                velocity.y = 0f;
+            }
+        }
+
         void Jump()
         {
             if (isGrounded)
             {
-                rb.velocity = Vector3.up * jumpVelocity;
+                velocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity * gravityScale);
             }
         }
     }
